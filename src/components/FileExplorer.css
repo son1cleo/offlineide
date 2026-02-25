@@ -1,0 +1,211 @@
+/* FileExplorer Component Styles */
+.file-explorer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+  background-color: var(--bg-1);
+}
+
+.explorer-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.explorer-action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+.explorer-action-btn:hover {
+  background-color: var(--accent);
+  border-color: var(--accent-2);
+  color: #05070b;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px var(--glow);
+}
+
+/* File List */
+.file-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text);
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: 0.35rem;
+}
+
+.file-item:hover {
+  background-color: var(--bg-2);
+  border-left: 2px solid var(--accent-2);
+  padding-left: calc(0.5rem - 2px);
+}
+
+.file-item.active {
+  background-color: rgba(91, 157, 255, 0.18);
+  border-left: 3px solid var(--accent);
+  padding-left: calc(0.5rem - 3px);
+  color: var(--accent-2);
+  font-weight: 500;
+}
+
+.file-item.active .file-icon {
+  filter: drop-shadow(0 0 6px var(--accent));
+}
+
+.file-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* File Actions */
+.file-actions {
+  display: none;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.file-item:hover .file-actions {
+  display: flex;
+}
+
+.file-action-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.file-action-btn:hover {
+  opacity: 1;
+  background-color: var(--bg-2);
+  transform: scale(1.15);
+}
+
+.file-action-btn.delete:hover {
+  background-color: rgba(255, 107, 107, 0.2);
+}
+
+/* File Input */
+.file-input {
+  flex: 1;
+  background-color: var(--bg-1);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+}
+
+.file-input:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 1px var(--accent-2);
+}
+
+.file-item.new-file,
+.file-item.renaming {
+  background-color: var(--bg-2);
+  border-left: 2px solid var(--accent);
+  padding-left: calc(0.5rem - 2px);
+}
+
+/* Empty State */
+.explorer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  gap: 1rem;
+}
+
+.explorer-empty p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.explorer-empty button {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #05070b;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.explorer-empty button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--glow);
+}
+
+/* Scrollbar */
+.file-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.file-list::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 3px;
+}
+
+.file-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
