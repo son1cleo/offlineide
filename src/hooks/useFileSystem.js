@@ -66,9 +66,35 @@ export function useFileSystem() {
         const savedFiles = request.result;
         if (savedFiles.length > 0) {
           const filesObj = {};
+          const filesNeedingMigration = [];
+
           savedFiles.forEach(file => {
-            filesObj[file.name] = file;
+            const normalizedLanguage = getLanguageFromFileExtension(file.name);
+            const normalizedFile = {
+              ...file,
+              language: normalizedLanguage,
+            };
+
+            filesObj[file.name] = normalizedFile;
+
+            if (file.language !== normalizedLanguage) {
+              filesNeedingMigration.push(normalizedFile);
+            }
           });
+
+          if (filesNeedingMigration.length > 0) {
+            try {
+              const migrationTx = database.transaction(['files'], 'readwrite');
+              const migrationStore = migrationTx.objectStore('files');
+              filesNeedingMigration.forEach((file) => migrationStore.put(file));
+              migrationTx.oncomplete = () => {
+                console.log(`🔧 Migrated ${filesNeedingMigration.length} file language records`);
+              };
+            } catch (migrationError) {
+              console.error('❌ Failed to migrate file language records:', migrationError);
+            }
+          }
+
           setFiles(filesObj);
           const lastFile = localStorage.getItem('southstack_last_file');
           if (lastFile && filesObj[lastFile]) {
@@ -226,7 +252,7 @@ export function useFileSystem() {
     const renamedFile = {
       ...file,
       name: newName,
-      language: getLanguageFromExtension(newName),
+      language: getLanguageFromFileExtension(newName),
       updatedAt: Date.now(),
     };
 
@@ -251,7 +277,20 @@ export function useFileSystem() {
 
   // Get current file
   const getCurrentFile = useCallback(() => {
-    return files[currentFile];
+    const file = files[currentFile];
+    if (!file) {
+      return file;
+    }
+
+    const normalizedLanguage = getLanguageFromFileExtension(file.name);
+    if (file.language === normalizedLanguage) {
+      return file;
+    }
+
+    return {
+      ...file,
+      language: normalizedLanguage,
+    };
   }, [files, currentFile]);
 
   // Get all file names
@@ -261,10 +300,14 @@ export function useFileSystem() {
 
   // Change file language
   const changeFileLanguage = useCallback((fileName, languageId) => {
+    const normalizedLanguageId = typeof languageId === 'string'
+      ? languageId
+      : getLanguageFromFileExtension(fileName);
+
     setFiles(prev => {
       const updatedFile = {
         ...prev[fileName],
-        language: languageId,
+        language: normalizedLanguageId,
         updatedAt: Date.now(),
       };
 

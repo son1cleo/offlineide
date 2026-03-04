@@ -7,7 +7,7 @@ import AIChat from './components/AIChat';
 import { useWebContainer } from './hooks/useWebContainer';
 import { useFileSystem } from './hooks/useFileSystem';
 import { useAI } from './hooks/useAI';
-import { isExecutableLanguage } from './utils/languages';
+import { getLanguageFromExtension, isExecutableLanguage } from './utils/languages';
 import { executeCode } from './utils/runtime';
 import './App.css';
 
@@ -183,7 +183,7 @@ function App() {
     }
 
     const currentFileData = getCurrentFile();
-    const language = currentFileData?.language || 'javascript';
+    const language = getLanguageFromExtension(currentFile).id;
 
     // Check if language is executable
     if (!isExecutableLanguage(language)) {
