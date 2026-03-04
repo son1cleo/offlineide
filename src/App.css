@@ -35,3 +35,44 @@
   resize: horizontal;
   overflow: hidden;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .workspace {
+    flex-direction: column;
+  }
+
+  .editor-section {
+    height: 100%;
+    flex: 1;
+  }
+
+  .editor-panel {
+    flex: 1;
+    min-height: 50%;
+  }
+
+  .terminal-panel {
+    height: 200px;
+    min-height: 120px;
+    max-height: 40%;
+    resize: none;
+  }
+
+  .ai-panel.desktop-only {
+    display: none;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .editor-panel {
+    min-height: 60%;
+  }
+
+  .terminal-panel {
+    height: 150px;
+    min-height: 100px;
+    max-height: 35%;
+  }
+}

@@ -245,6 +245,23 @@ function App() {
               ? 'ready'
               : 'initializing'
       }
+      aiPanel={
+        <AIChat
+          messages={chatMessages}
+          onSendMessage={handleAISend}
+          onInsertCode={handleInsertCode}
+          isProcessing={isAIProcessing}
+          isReady={aiReady}
+          isLoading={aiLoading}
+          loadingProgress={aiProgress}
+          loadingStatus={aiStatus}
+          onInitialize={initializeAI}
+          rememberChoice={rememberAI}
+          onToggleRemember={handleRememberAIChange}
+          useFileContext={useFileContext}
+          onToggleContext={setUseFileContext}
+        />
+      }
     >
       <div className="workspace">
         <div className="editor-section">
@@ -262,7 +279,7 @@ function App() {
             <Terminal output={terminalOutput} isRunning={isRunning} />
           </div>
         </div>
-        <div className="ai-panel">
+        <div className="ai-panel desktop-only">
           <AIChat
             messages={chatMessages}
             onSendMessage={handleAISend}

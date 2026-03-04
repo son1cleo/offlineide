@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import './Layout.css';
 import FileExplorer from './FileExplorer';
 
@@ -17,6 +18,7 @@ import FileExplorer from './FileExplorer';
  * @param {Function} props.onFileDelete - Callback to delete file
  * @param {Function} props.onFileRename - Callback to rename file
  * @param {string} props.saveStatus - Autosave status text
+ * @param {React.ReactNode} props.aiPanel - AI Chat panel component
  * @param {React.ReactNode} props.children - Child components (Editor, etc.)
  */
 function Layout({ 
@@ -32,10 +34,15 @@ function Layout({
   onFileDelete,
   onFileRename,
   saveStatus,
+  aiPanel,
   children 
 }) {
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
+
   return (
-    <div className="layout">
+    <div className="layout">{leftPanelOpen && <div className="mobile-overlay" onClick={() => setLeftPanelOpen(false)} />}
+      {rightPanelOpen && <div className="mobile-overlay" onClick={() => setRightPanelOpen(false)} />}
       {/* Hidden SVG for gradient definition */}
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
@@ -109,7 +116,8 @@ function Layout({
 
       {/* Main Content Area */}
       <div className="layout-content">
-        <aside className="sidebar">
+        {/* Desktop Sidebar */}
+        <aside className="sidebar desktop-only">
           <FileExplorer
             fileNames={fileNames}
             currentFile={fileName}
@@ -120,13 +128,43 @@ function Layout({
           />
         </aside>
 
+        {/* Mobile Left Panel (Files) */}
+        <aside className={`mobile-panel mobile-panel-left ${leftPanelOpen ? 'open' : ''}`}>
+          <div className="mobile-panel-header">
+            <h3>Files</h3>
+            <button className="mobile-close-btn" onClick={() => setLeftPanelOpen(false)}>×</button>
+          </div>
+          <FileExplorer
+            fileNames={fileNames}
+            currentFile={fileName}
+            onFileSelect={(file) => {
+              onFileSelect(file);
+              setLeftPanelOpen(false);
+            }}
+            onFileCreate={onFileCreate}
+            onFileDelete={onFileDelete}
+            onFileRename={onFileRename}
+          />
+        </aside>
+
+        {/* Mobile Right Panel (AI) */}
+        <aside className={`mobile-panel mobile-panel-right ${rightPanelOpen ? 'open' : ''}`}>
+          <div className="mobile-panel-header">
+            <h3>AI Assistant</h3>
+            <button className="mobile-close-btn" onClick={() => setRightPanelOpen(false)}>×</button>
+          </div>
+          <div className="mobile-panel-content">
+            {aiPanel}
+          </div>
+        </aside>
+
         <main className="main-content">
           {children}
         </main>
       </div>
 
-      {/* Bottom Status Bar */}
-      <footer className="layout-footer">
+      {/* Bottom Status Bar - Desktop */}
+      <footer className="layout-footer desktop-only">
         <div className="footer-left">
           <span className="footer-item">JavaScript</span>
           <span className="footer-item">UTF-8</span>
@@ -137,6 +175,69 @@ function Layout({
           <span className="footer-item">Ln 1, Col 1</span>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <button 
+          className={`mobile-nav-btn ${leftPanelOpen ? 'active' : ''}`}
+          onClick={() => {
+            setLeftPanelOpen(!leftPanelOpen);
+            setRightPanelOpen(false);
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+          <span>Files</span>
+        </button>
+
+        <button 
+          className="mobile-nav-btn mobile-nav-run"
+          onClick={onRunCode}
+          disabled={isRunning || containerStatus !== 'ready'}
+        >
+          {isRunning ? (
+            <>
+              <span className="button-spinner"></span>
+              <span>Running</span>
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>Run</span>
+            </>
+          )}
+        </button>
+
+        <button 
+          className="mobile-nav-btn"
+          onClick={() => {
+            // Toggle terminal visibility (handled by parent)
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="M6 8l4 4-4 4M12 16h6" />
+          </svg>
+          <span>Console</span>
+        </button>
+
+        <button 
+          className={`mobile-nav-btn ${rightPanelOpen ? 'active' : ''}`}
+          onClick={() => {
+            setRightPanelOpen(!rightPanelOpen);
+            setLeftPanelOpen(false);
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 16v-4M12 8h.01" />
+          </svg>
+          <span>AI</span>
+        </button>
+      </nav>
     </div>
   );
 }
