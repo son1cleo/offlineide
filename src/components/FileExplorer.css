@@ -209,3 +209,147 @@
 .file-list::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 1024px) {
+  .explorer-header {
+    padding: 0.85rem 1rem;
+  }
+  
+  .explorer-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.8px;
+  }
+  
+  .explorer-action-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+  
+  .file-item {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+  
+  .file-icon {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .explorer-header {
+    padding: 0.75rem 0.9rem;
+  }
+  
+  .explorer-title {
+    font-size: 0.7rem;
+  }
+  
+  .explorer-action-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+  
+  .file-item {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.8rem;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .file-icon {
+    font-size: 0.9rem;
+  }
+  
+  .file-actions {
+    gap: 0.2rem;
+  }
+  
+  .file-action-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+  
+  .explorer-empty {
+    padding: 1.5rem 0.8rem;
+    gap: 0.8rem;
+  }
+  
+  .explorer-empty p {
+    font-size: 0.8rem;
+  }
+  
+  .explorer-empty button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .explorer-header {
+    padding: 0.65rem 0.8rem;
+  }
+  
+  .explorer-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .explorer-action-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.8rem;
+  }
+  
+  .file-item {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.75rem;
+    gap: 0.3rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .file-icon {
+    font-size: 0.85rem;
+  }
+  
+  .file-action-btn {
+    width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
+  }
+  
+  .file-input {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+  }
+  
+  .explorer-empty {
+    padding: 1.2rem 0.6rem;
+    gap: 0.6rem;
+  }
+  
+  .explorer-empty button {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .explorer-header {
+    padding: 0.6rem 0.7rem;
+  }
+  
+  .file-item {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+  }
+  
+  .explorer-empty p {
+    font-size: 0.75rem;
+  }
+}

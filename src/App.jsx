@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// useRef imported for managing persistent process reference
+import { useState, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import Editor from './components/Editor';
 import Terminal from './components/Terminal';
@@ -6,6 +7,8 @@ import AIChat from './components/AIChat';
 import { useWebContainer } from './hooks/useWebContainer';
 import { useFileSystem } from './hooks/useFileSystem';
 import { useAI } from './hooks/useAI';
+import { isExecutableLanguage } from './utils/languages';
+import { executeCode } from './utils/runtime';
 import './App.css';
 
 /**
@@ -22,6 +25,7 @@ function App() {
     updateFile,
     deleteFile,
     renameFile,
+    changeFileLanguage,
     getCurrentFile,
     getFileNames,
     lastSavedAt,
@@ -32,6 +36,10 @@ function App() {
 
   const [terminalOutput, setTerminalOutput] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [waitingForInput, setWaitingForInput] = useState(false);
+  const processRef = useRef(null);
+  const writeInputRef = useRef(null);
+  const killProcessRef = useRef(null);
 
   const {
     isLoading: containerLoading,
@@ -174,32 +182,63 @@ function App() {
       return;
     }
 
+    const currentFileData = getCurrentFile();
+    const language = currentFileData?.language || 'javascript';
+
+    // Check if language is executable
+    if (!isExecutableLanguage(language)) {
+      setTerminalOutput([
+        { type: 'error', text: `❌ Language "${language}" is not executable in this environment.` },
+      ]);
+      return;
+    }
+
     setIsRunning(true);
+    setWaitingForInput(false);
     setTerminalOutput([
-      { type: 'info', text: `⚡ Executing ${currentFile}...` },
+      { type: 'info', text: `⚡ Executing ${currentFile} (${language})...` },
     ]);
 
     try {
-      await writeFile(currentFile, currentFileData.content);
-      const process = await runCommand('node', [currentFile]);
-
-      process.output.pipeTo(
-        new WritableStream({
-          write(chunk) {
-            // Convert Uint8Array to string if needed
-            const text = typeof chunk === 'string' 
-              ? chunk 
-              : new TextDecoder().decode(chunk);
-            
-            setTerminalOutput((prev) => [
-              ...prev,
-              { type: 'success', text },
-            ]);
-          },
-        })
+      const result = await executeCode(
+        language,
+        currentFile,
+        currentFileData.content,
+        { writeFile, runCommand },
+        // onOutput callback
+        (text) => {
+          setTerminalOutput((prev) => [
+            ...prev,
+            { type: 'success', text },
+          ]);
+          // Heuristic: Some output patterns suggest waiting for input
+          if (text.includes('?') || text.includes(':') || text.toLowerCase().includes('enter')) {
+            setWaitingForInput(true);
+          }
+        },
+        // onError callback
+        (error) => {
+          setTerminalOutput((prev) => [
+            ...prev,
+            { type: 'error', text: error },
+          ]);
+        },
+        // onProgress callback
+        (message) => {
+          setTerminalOutput((prev) => [
+            ...prev,
+            { type: 'info', text: message },
+          ]);
+        }
       );
 
-      const exitCode = await process.exit;
+      // Store process references for interactive communication
+      processRef.current = result.process;
+      writeInputRef.current = result.writeInput;
+      killProcessRef.current = result.kill;
+
+      // Wait for process to complete
+      const exitCode = await result.exitPromise;
 
       if (exitCode === 0) {
         setTerminalOutput((prev) => [
@@ -220,6 +259,45 @@ function App() {
       ]);
     } finally {
       setIsRunning(false);
+      setWaitingForInput(false);
+      processRef.current = null;
+      writeInputRef.current = null;
+      killProcessRef.current = null;
+    }
+  };
+
+  const handleStopCode = () => {
+    if (killProcessRef.current) {
+      try {
+        killProcessRef.current();
+        setTerminalOutput((prev) => [
+          ...prev,
+          { type: 'error', text: '⛔ Process stopped by user' },
+        ]);
+      } catch (err) {
+        console.error('Failed to kill process:', err);
+      }
+      setIsRunning(false);
+      setWaitingForInput(false);
+      processRef.current = null;
+      writeInputRef.current = null;
+      killProcessRef.current = null;
+    }
+  };
+
+  const handleTerminalInput = async (input) => {
+    if (writeInputRef.current) {
+      // Echo the input to terminal
+      setTerminalOutput((prev) => [
+        ...prev,
+        { type: 'input', text: `› ${input}` },
+      ]);
+      
+      // Send to process stdin
+      await writeInputRef.current(input);
+      
+      // Reset waiting state after input
+      setWaitingForInput(false);
     }
   };
 
@@ -232,6 +310,7 @@ function App() {
       onFileDelete={deleteFile}
       onFileRename={renameFile}
       onRunCode={handleRunCode}
+      onStopCode={handleStopCode}
       isRunning={isRunning}
       containerError={containerError}
       onRetryWebContainer={retryBoot}
@@ -259,7 +338,12 @@ function App() {
             />
           </div>
           <div className="terminal-panel">
-            <Terminal output={terminalOutput} isRunning={isRunning} />
+            <Terminal 
+              output={terminalOutput} 
+              isRunning={isRunning}
+              onInput={handleTerminalInput}
+              waitingForInput={waitingForInput}
+            />
           </div>
         </div>
         <div className="ai-panel">

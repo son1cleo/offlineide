@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getLanguageFromExtension } from '../utils/languages';
 
 /**
  * Custom hook for managing file system
@@ -141,21 +142,8 @@ export function useFileSystem() {
   }, [db]);
 
   // Get language from file extension
-  const getLanguageFromExtension = (fileName) => {
-    const ext = fileName.split('.').pop().toLowerCase();
-    const languageMap = {
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'py': 'python',
-      'json': 'json',
-      'html': 'html',
-      'css': 'css',
-      'md': 'markdown',
-      'txt': 'plaintext',
-    };
-    return languageMap[ext] || 'plaintext';
+  const getLanguageFromFileExtension = (fileName) => {
+    return getLanguageFromExtension(fileName).id;
   };
 
   // Create new file
@@ -163,7 +151,7 @@ export function useFileSystem() {
     const newFile = {
       name: fileName,
       content,
-      language: getLanguageFromExtension(fileName),
+      language: getLanguageFromFileExtension(fileName),
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -271,6 +259,24 @@ export function useFileSystem() {
     return Object.keys(files).sort();
   }, [files]);
 
+  // Change file language
+  const changeFileLanguage = useCallback((fileName, languageId) => {
+    setFiles(prev => {
+      const updatedFile = {
+        ...prev[fileName],
+        language: languageId,
+        updatedAt: Date.now(),
+      };
+
+      scheduleSave(updatedFile);
+      
+      return {
+        ...prev,
+        [fileName]: updatedFile,
+      };
+    });
+  }, [scheduleSave]);
+
   useEffect(() => {
     if (currentFile) {
       localStorage.setItem('southstack_last_file', currentFile);
@@ -285,6 +291,7 @@ export function useFileSystem() {
     updateFile,
     deleteFile,
     renameFile,
+    changeFileLanguage,
     getCurrentFile,
     getFileNames,
     lastSavedAt,
