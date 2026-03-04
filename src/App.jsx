@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Layout from './components/Layout';
 import Editor from './components/Editor';
 import Terminal from './components/Terminal';
@@ -280,6 +281,7 @@ function App() {
           />
         </div>
       </div>
+      <Analytics />
     </Layout>
   );
 }
