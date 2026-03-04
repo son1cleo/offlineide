@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getLanguageFromExtension } from '../utils/languages';
 
 /**
  * Custom hook for managing file system
@@ -65,9 +66,35 @@ export function useFileSystem() {
         const savedFiles = request.result;
         if (savedFiles.length > 0) {
           const filesObj = {};
+          const filesNeedingMigration = [];
+
           savedFiles.forEach(file => {
-            filesObj[file.name] = file;
+            const normalizedLanguage = getLanguageFromFileExtension(file.name);
+            const normalizedFile = {
+              ...file,
+              language: normalizedLanguage,
+            };
+
+            filesObj[file.name] = normalizedFile;
+
+            if (file.language !== normalizedLanguage) {
+              filesNeedingMigration.push(normalizedFile);
+            }
           });
+
+          if (filesNeedingMigration.length > 0) {
+            try {
+              const migrationTx = database.transaction(['files'], 'readwrite');
+              const migrationStore = migrationTx.objectStore('files');
+              filesNeedingMigration.forEach((file) => migrationStore.put(file));
+              migrationTx.oncomplete = () => {
+                console.log(`🔧 Migrated ${filesNeedingMigration.length} file language records`);
+              };
+            } catch (migrationError) {
+              console.error('❌ Failed to migrate file language records:', migrationError);
+            }
+          }
+
           setFiles(filesObj);
           const lastFile = localStorage.getItem('southstack_last_file');
           if (lastFile && filesObj[lastFile]) {
@@ -141,21 +168,8 @@ export function useFileSystem() {
   }, [db]);
 
   // Get language from file extension
-  const getLanguageFromExtension = (fileName) => {
-    const ext = fileName.split('.').pop().toLowerCase();
-    const languageMap = {
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'py': 'python',
-      'json': 'json',
-      'html': 'html',
-      'css': 'css',
-      'md': 'markdown',
-      'txt': 'plaintext',
-    };
-    return languageMap[ext] || 'plaintext';
+  const getLanguageFromFileExtension = (fileName) => {
+    return getLanguageFromExtension(fileName).id;
   };
 
   // Create new file
@@ -163,7 +177,7 @@ export function useFileSystem() {
     const newFile = {
       name: fileName,
       content,
-      language: getLanguageFromExtension(fileName),
+      language: getLanguageFromFileExtension(fileName),
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -238,7 +252,7 @@ export function useFileSystem() {
     const renamedFile = {
       ...file,
       name: newName,
-      language: getLanguageFromExtension(newName),
+      language: getLanguageFromFileExtension(newName),
       updatedAt: Date.now(),
     };
 
@@ -263,13 +277,48 @@ export function useFileSystem() {
 
   // Get current file
   const getCurrentFile = useCallback(() => {
-    return files[currentFile];
+    const file = files[currentFile];
+    if (!file) {
+      return file;
+    }
+
+    const normalizedLanguage = getLanguageFromFileExtension(file.name);
+    if (file.language === normalizedLanguage) {
+      return file;
+    }
+
+    return {
+      ...file,
+      language: normalizedLanguage,
+    };
   }, [files, currentFile]);
 
   // Get all file names
   const getFileNames = useCallback(() => {
     return Object.keys(files).sort();
   }, [files]);
+
+  // Change file language
+  const changeFileLanguage = useCallback((fileName, languageId) => {
+    const normalizedLanguageId = typeof languageId === 'string'
+      ? languageId
+      : getLanguageFromFileExtension(fileName);
+
+    setFiles(prev => {
+      const updatedFile = {
+        ...prev[fileName],
+        language: normalizedLanguageId,
+        updatedAt: Date.now(),
+      };
+
+      scheduleSave(updatedFile);
+      
+      return {
+        ...prev,
+        [fileName]: updatedFile,
+      };
+    });
+  }, [scheduleSave]);
 
   useEffect(() => {
     if (currentFile) {
@@ -285,6 +334,7 @@ export function useFileSystem() {
     updateFile,
     deleteFile,
     renameFile,
+    changeFileLanguage,
     getCurrentFile,
     getFileNames,
     lastSavedAt,

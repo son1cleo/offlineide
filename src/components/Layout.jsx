@@ -8,6 +8,7 @@ import FileExplorer from './FileExplorer';
  * @param {Object} props - Component props
  * @param {string} props.fileName - Current open file name
  * @param {Function} props.onRunCode - Callback to run code
+ * @param {Function} props.onStopCode - Callback to stop code execution
  * @param {boolean} props.isRunning - Whether code is currently running
  * @param {string} props.containerStatus - WebContainer status
  * @param {string|null} props.containerError - WebContainer error message
@@ -24,6 +25,7 @@ import FileExplorer from './FileExplorer';
 function Layout({ 
   fileName, 
   onRunCode, 
+  onStopCode,
   isRunning, 
   containerStatus, 
   containerError,
@@ -71,23 +73,24 @@ function Layout({
         </div>
         
         <div className="header-right">
-          <button 
-            className="run-button"
-            onClick={onRunCode}
-            disabled={isRunning || containerStatus !== 'ready'}
-          >
-            {isRunning ? (
-              <>
-                <span className="button-spinner"></span>
-                Running...
-              </>
-            ) : (
-              <>
-                <span className="button-icon">▶️</span>
-                Run Code
-              </>
-            )}
-          </button>
+          {isRunning ? (
+            <button 
+              className="stop-button"
+              onClick={onStopCode}
+            >
+              <span className="button-icon">⏹️</span>
+              Stop
+            </button>
+          ) : (
+            <button 
+              className="run-button"
+              onClick={onRunCode}
+              disabled={containerStatus !== 'ready'}
+            >
+              <span className="button-icon">▶️</span>
+              Run Code
+            </button>
+          )}
           
           <span className={`status-indicator status-${containerStatus}`}>
             <span className="status-dot"></span>
