@@ -1,0 +1,133 @@
+/* Language Selector Styles */
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem 0.9rem;
+  background-color: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(91, 157, 255, 0.08);
+}
+
+.lang-label {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.lang-select {
+  background-color: var(--bg-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  min-width: 140px;
+}
+
+.lang-select:hover {
+  border-color: var(--accent);
+  background-color: var(--bg-1);
+}
+
+.lang-select:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px rgba(99, 255, 159, 0.2);
+}
+
+.lang-select option {
+  background-color: var(--bg-2);
+  color: var(--text);
+  padding: 0.5rem;
+}
+
+.lang-select option:hover {
+  background-color: var(--accent);
+  color: #05070b;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .language-selector {
+    padding: 0.35rem 0.8rem;
+  }
+
+  .lang-label {
+    font-size: 0.8rem;
+  }
+
+  .lang-select {
+    font-size: 0.8rem;
+    min-width: 130px;
+    padding: 0.3rem 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .language-selector {
+    padding: 0.3rem 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .lang-label {
+    font-size: 0.75rem;
+  }
+
+  .lang-select {
+    font-size: 0.75rem;
+    min-width: 110px;
+    padding: 0.25rem 0.4rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .language-selector {
+    padding: 0.25rem 0.6rem;
+    gap: 0.4rem;
+    flex: 1;
+  }
+
+  .lang-label {
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+
+  .lang-select {
+    font-size: 0.7rem;
+    min-width: 100px;
+    padding: 0.2rem 0.35rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .language-selector {
+    padding: 0.22rem 0.5rem;
+  }
+
+  .lang-label {
+    display: none;
+  }
+
+  .lang-select {
+    font-size: 0.65rem;
+    min-width: 90px;
+  }
+}
+
+/* Landscape mode */
+@media (max-height: 500px) {
+  .language-selector {
+    padding: 0.25rem 0.6rem;
+  }
+
+  .lang-select {
+    padding: 0.2rem 0.35rem;
+  }
+}

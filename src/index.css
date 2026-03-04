@@ -28,6 +28,9 @@ body,
   font-family: 'Tahoma', 'Verdana', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body {
@@ -61,4 +64,27 @@ code {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-2);
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Prevent zoom on double tap for buttons */
+  button, a, input {
+    touch-action: manipulation;
+  }
+}
+
+/* Tablet and below - use smaller scrollbars */
+@media (max-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 }
