@@ -22,16 +22,18 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
     }
   }, [output]);
 
-  // Auto-focus input when waiting for input
+  // Auto-focus input when running / waiting for input
   useEffect(() => {
-    if (waitingForInput && inputRef.current) {
-      inputRef.current.focus();
+    if ((isRunning || waitingForInput) && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
-  }, [waitingForInput]);
+  }, [isRunning, waitingForInput]);
 
   const handleInputSubmit = (e) => {
     e.preventDefault();
-    if (inputValue.trim() && onInput) {
+    if (onInput && isRunning) {
       onInput(inputValue);
       setInputValue('');
     }
@@ -92,24 +94,24 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
                 <span className="line-text">{line.text}</span>
               </div>
             ))}
-            
-            {/* Interactive input prompt */}
-            {isRunning && (
-              <form className="terminal-input-form" onSubmit={handleInputSubmit}>
-                <span className="input-prompt">›</span>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  className="terminal-input"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={waitingForInput ? "Type input and press Enter..." : ""}
-                  disabled={!isRunning}
-                />
-              </form>
-            )}
           </div>
+        )}
+
+        {/* Interactive input prompt (always available while running) */}
+        {isRunning && (
+          <form className="terminal-input-form" onSubmit={handleInputSubmit}>
+            <span className="input-prompt">›</span>
+            <input
+              ref={inputRef}
+              type="text"
+              className="terminal-input"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={waitingForInput ? "Type input and press Enter..." : "Type and press Enter..."}
+              disabled={!isRunning}
+            />
+          </form>
         )}
       </div>
     </div>

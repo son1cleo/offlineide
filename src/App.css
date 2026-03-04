@@ -69,13 +69,14 @@
   }
   
   .terminal-panel {
-    height: 180px;
-    min-height: 100px;
-    max-height: 40%;
+    height: 42dvh;
+    min-height: 220px;
+    max-height: 55dvh;
+    resize: none;
   }
   
   .editor-panel {
-    min-height: 200px;
+    min-height: 180px;
   }
 }
 
