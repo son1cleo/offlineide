@@ -19,8 +19,9 @@ import FileExplorer from './FileExplorer';
  * @param {Function} props.onFileDelete - Callback to delete file
  * @param {Function} props.onFileRename - Callback to rename file
  * @param {string} props.saveStatus - Autosave status text
- * @param {React.ReactNode} props.aiPanel - AI Chat panel component
  * @param {React.ReactNode} props.children - Child components (Editor, etc.)
+ * @param {React.ReactNode} props.mobileFilePanel - File explorer for mobile
+ * @param {React.ReactNode} props.mobileAIPanel - AI chat for mobile
  */
 function Layout({ 
   fileName, 
@@ -36,15 +37,27 @@ function Layout({
   onFileDelete,
   onFileRename,
   saveStatus,
-  aiPanel,
-  children 
+  children,
+  mobileFilePanel,
+  mobileAIPanel 
 }) {
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState(null); // null, 'files', 'ai'
+
+  const handleMobilePanelToggle = (panel) => {
+    setMobilePanel(current => current === panel ? null : panel);
+  };
+
+  const handleRunClick = () => {
+    setMobilePanel(null); // Close any open panels
+    if (isRunning) {
+      onStopCode();
+    } else {
+      onRunCode();
+    }
+  };
 
   return (
-    <div className="layout">{leftPanelOpen && <div className="mobile-overlay" onClick={() => setLeftPanelOpen(false)} />}
-      {rightPanelOpen && <div className="mobile-overlay" onClick={() => setRightPanelOpen(false)} />}
+    <div className="layout">
       {/* Hidden SVG for gradient definition */}
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
@@ -119,8 +132,7 @@ function Layout({
 
       {/* Main Content Area */}
       <div className="layout-content">
-        {/* Desktop Sidebar */}
-        <aside className="sidebar desktop-only">
+        <aside className="sidebar">
           <FileExplorer
             fileNames={fileNames}
             currentFile={fileName}
@@ -131,43 +143,13 @@ function Layout({
           />
         </aside>
 
-        {/* Mobile Left Panel (Files) */}
-        <aside className={`mobile-panel mobile-panel-left ${leftPanelOpen ? 'open' : ''}`}>
-          <div className="mobile-panel-header">
-            <h3>Files</h3>
-            <button className="mobile-close-btn" onClick={() => setLeftPanelOpen(false)}>×</button>
-          </div>
-          <FileExplorer
-            fileNames={fileNames}
-            currentFile={fileName}
-            onFileSelect={(file) => {
-              onFileSelect(file);
-              setLeftPanelOpen(false);
-            }}
-            onFileCreate={onFileCreate}
-            onFileDelete={onFileDelete}
-            onFileRename={onFileRename}
-          />
-        </aside>
-
-        {/* Mobile Right Panel (AI) */}
-        <aside className={`mobile-panel mobile-panel-right ${rightPanelOpen ? 'open' : ''}`}>
-          <div className="mobile-panel-header">
-            <h3>AI Assistant</h3>
-            <button className="mobile-close-btn" onClick={() => setRightPanelOpen(false)}>×</button>
-          </div>
-          <div className="mobile-panel-content">
-            {aiPanel}
-          </div>
-        </aside>
-
         <main className="main-content">
           {children}
         </main>
       </div>
 
-      {/* Bottom Status Bar - Desktop */}
-      <footer className="layout-footer desktop-only">
+      {/* Bottom Status Bar (Desktop) */}
+      <footer className="layout-footer layout-footer-desktop">
         <div className="footer-left">
           <span className="footer-item">JavaScript</span>
           <span className="footer-item">UTF-8</span>
@@ -182,65 +164,80 @@ function Layout({
       {/* Mobile Bottom Navigation */}
       <nav className="mobile-bottom-nav">
         <button 
-          className={`mobile-nav-btn ${leftPanelOpen ? 'active' : ''}`}
-          onClick={() => {
-            setLeftPanelOpen(!leftPanelOpen);
-            setRightPanelOpen(false);
-          }}
+          className={`mobile-nav-btn ${mobilePanel === 'files' ? 'active' : ''}`}
+          onClick={() => handleMobilePanelToggle('files')}
+          aria-label="Toggle files panel"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 7h18M3 12h18M3 17h18" />
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>
           </svg>
           <span>Files</span>
         </button>
-
+        
         <button 
-          className="mobile-nav-btn mobile-nav-run"
-          onClick={onRunCode}
-          disabled={isRunning || containerStatus !== 'ready'}
+          className="mobile-nav-btn mobile-nav-terminal"
+          onClick={handleRunClick}
+          disabled={containerStatus !== 'ready' && !isRunning}
+          aria-label={isRunning ? "Stop code" : "Run code"}
         >
           {isRunning ? (
             <>
-              <span className="button-spinner"></span>
-              <span>Running</span>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <rect x="6" y="6" width="12" height="12" rx="2"/>
+              </svg>
+              <span>Stop</span>
             </>
           ) : (
             <>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z" />
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M8 5v14l11-7z"/>
               </svg>
               <span>Run</span>
             </>
           )}
         </button>
-
+        
         <button 
-          className="mobile-nav-btn"
-          onClick={() => {
-            // Toggle terminal visibility (handled by parent)
-          }}
+          className={`mobile-nav-btn ${mobilePanel === 'ai' ? 'active' : ''}`}
+          onClick={() => handleMobilePanelToggle('ai')}
+          aria-label="Toggle AI assistant"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="2" y="4" width="20" height="16" rx="2" />
-            <path d="M6 8l4 4-4 4M12 16h6" />
-          </svg>
-          <span>Console</span>
-        </button>
-
-        <button 
-          className={`mobile-nav-btn ${rightPanelOpen ? 'active' : ''}`}
-          onClick={() => {
-            setRightPanelOpen(!rightPanelOpen);
-            setLeftPanelOpen(false);
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 16v-4M12 8h.01" />
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           <span>AI</span>
         </button>
       </nav>
+
+      {/* Mobile Sliding Panels */}
+      <div className={`mobile-panel mobile-panel-files ${mobilePanel === 'files' ? 'active' : ''}`}>
+        <div className="mobile-panel-header">
+          <h3>Files</h3>
+          <button className="mobile-panel-close" onClick={() => setMobilePanel(null)} aria-label="Close panel">
+            ✕
+          </button>
+        </div>
+        <div className="mobile-panel-content">
+          {mobileFilePanel}
+        </div>
+      </div>
+
+      <div className={`mobile-panel mobile-panel-ai ${mobilePanel === 'ai' ? 'active' : ''}`}>
+        <div className="mobile-panel-header">
+          <h3>AI Assistant</h3>
+          <button className="mobile-panel-close" onClick={() => setMobilePanel(null)} aria-label="Close panel">
+            ✕
+          </button>
+        </div>
+        <div className="mobile-panel-content">
+          {mobileAIPanel}
+        </div>
+      </div>
+
+      {/* Mobile Panel Overlay */}
+      {mobilePanel && (
+        <div className="mobile-panel-overlay" onClick={() => setMobilePanel(null)} />
+      )}
     </div>
   );
 }

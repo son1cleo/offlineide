@@ -324,7 +324,31 @@ function App() {
               ? 'ready'
               : 'initializing'
       }
-      aiPanel={
+      mobileFilePanel={
+        <div className="mobile-file-explorer">
+          {getFileNames().map((fileName) => (
+            <button
+              key={fileName}
+              className={`mobile-file-item ${fileName === currentFile ? 'active' : ''}`}
+              onClick={() => handleFileSelect(fileName)}
+            >
+              <span className="file-icon">📄</span>
+              <span className="file-name">{fileName}</span>
+            </button>
+          ))}
+          <button
+            className="mobile-file-item mobile-file-create"
+            onClick={() => {
+              const name = prompt('Enter file name:');
+              if (name) handleFileCreate(name);
+            }}
+          >
+            <span className="file-icon">➕</span>
+            <span className="file-name">New File</span>
+          </button>
+        </div>
+      }
+      mobileAIPanel={
         <AIChat
           messages={chatMessages}
           onSendMessage={handleAISend}
@@ -363,7 +387,7 @@ function App() {
             />
           </div>
         </div>
-        <div className="ai-panel desktop-only">
+        <div className="ai-panel">
           <AIChat
             messages={chatMessages}
             onSendMessage={handleAISend}
