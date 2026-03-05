@@ -324,6 +324,47 @@ function App() {
               ? 'ready'
               : 'initializing'
       }
+      mobileFilePanel={
+        <div className="mobile-file-explorer">
+          {getFileNames().map((fileName) => (
+            <button
+              key={fileName}
+              className={`mobile-file-item ${fileName === currentFile ? 'active' : ''}`}
+              onClick={() => handleFileSelect(fileName)}
+            >
+              <span className="file-icon">📄</span>
+              <span className="file-name">{fileName}</span>
+            </button>
+          ))}
+          <button
+            className="mobile-file-item mobile-file-create"
+            onClick={() => {
+              const name = prompt('Enter file name:');
+              if (name) handleFileCreate(name);
+            }}
+          >
+            <span className="file-icon">➕</span>
+            <span className="file-name">New File</span>
+          </button>
+        </div>
+      }
+      mobileAIPanel={
+        <AIChat
+          messages={chatMessages}
+          onSendMessage={handleAISend}
+          onInsertCode={handleInsertCode}
+          isProcessing={isAIProcessing}
+          isReady={aiReady}
+          isLoading={aiLoading}
+          loadingProgress={aiProgress}
+          loadingStatus={aiStatus}
+          onInitialize={initializeAI}
+          rememberChoice={rememberAI}
+          onToggleRemember={handleRememberAIChange}
+          useFileContext={useFileContext}
+          onToggleContext={setUseFileContext}
+        />
+      }
     >
       <div className="workspace">
         <div className="editor-section">
