@@ -15,6 +15,11 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
   const inputRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
 
+  // Debug logging for terminal input issues
+  useEffect(() => {
+    console.log('[Terminal] State:', { isRunning, waitingForInput, hasCallback: !!onInput });
+  }, [isRunning, waitingForInput, onInput]);
+
   // Auto-scroll to bottom when new output arrives
   useEffect(() => {
     if (terminalRef.current) {
@@ -25,25 +30,55 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
   // Auto-focus input when running / waiting for input
   useEffect(() => {
     if ((isRunning || waitingForInput) && inputRef.current) {
+      console.log('[Terminal] Attempting focus on input element');
       setTimeout(() => {
-        inputRef.current?.focus();
+        if (inputRef.current) {
+          inputRef.current.focus();
+          const focused = document.activeElement === inputRef.current;
+          console.log('[Terminal] Focus result:', { focused, disabled: inputRef.current.disabled });
+        }
       }, 0);
     }
   }, [isRunning, waitingForInput]);
 
   const handleInputSubmit = (e) => {
     e.preventDefault();
+    console.log('[Terminal] Form submit attempt:', { 
+      inputValue, 
+      isRunning, 
+      hasCallback: !!onInput,
+      willSubmit: !!(onInput && isRunning)
+    });
+    
     if (onInput && isRunning) {
+      console.log('[Terminal] Sending input:', inputValue);
       onInput(inputValue);
       setInputValue('');
+    } else {
+      console.warn('[Terminal] Cannot submit - condition failed', { onInput: !!onInput, isRunning });
     }
   };
 
   const handleKeyDown = (e) => {
+    // Handle Enter key separately to ensure it always submits
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      console.log('[Terminal] Enter key pressed');
+      if (onInput && isRunning) {
+        console.log('[Terminal] Submitting via Enter key:', inputValue);
+        onInput(inputValue);
+        setInputValue('');
+      } else {
+        console.warn('[Terminal] Cannot submit on Enter - condition failed', { onInput: !!onInput, isRunning });
+      }
+      return;
+    }
+    
     // Prevent default behavior for Ctrl+C to send interrupt signal
     if (e.ctrlKey && e.key === 'c') {
       e.preventDefault();
       if (onInput) {
+        console.log('[Terminal] Ctrl+C detected');
         onInput('\x03'); // Send ETX (End of Text) signal
       }
     }
@@ -106,10 +141,17 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
               type="text"
               className="terminal-input"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                console.log('[Terminal] Input changed:', e.target.value);
+              }}
               onKeyDown={handleKeyDown}
               placeholder={waitingForInput ? "Type input and press Enter..." : "Type and press Enter..."}
-              disabled={!isRunning}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
+              autoCapitalize="off"
+              data-testid="terminal-input"
             />
           </form>
         )}

@@ -207,12 +207,15 @@ function App() {
         { writeFile, runCommand },
         // onOutput callback
         (text) => {
+          console.log('[App] onOutput received:', { text, length: text.length });
           setTerminalOutput((prev) => [
             ...prev,
             { type: 'success', text },
           ]);
-          // Heuristic: Some output patterns suggest waiting for input
+          // If we have stdin available AND output is detected, likely waiting for input
+          // Note: Some prompts may not be visible if they go directly to terminal TTY
           if (text.includes('?') || text.includes(':') || text.toLowerCase().includes('enter')) {
+            console.log('[App] Input prompt pattern detected in output');
             setWaitingForInput(true);
           }
         },
@@ -236,6 +239,12 @@ function App() {
       processRef.current = result.process;
       writeInputRef.current = result.writeInput;
       killProcessRef.current = result.kill;
+
+      // Signal that input is waiting (most interactive programs will need it)
+      if (result.hasStdin) {
+        console.log('[App] stdin available - marking as waiting for input');
+        setWaitingForInput(true);
+      }
 
       // Wait for process to complete
       const exitCode = await result.exitPromise;
@@ -286,6 +295,8 @@ function App() {
   };
 
   const handleTerminalInput = async (input) => {
+    console.log('[App] handleTerminalInput called:', { input, hasWriter: !!writeInputRef.current });
+    
     if (writeInputRef.current) {
       // Echo the input to terminal
       setTerminalOutput((prev) => [
@@ -294,10 +305,13 @@ function App() {
       ]);
       
       // Send to process stdin
+      console.log('[App] Writing to stdin:', input);
       await writeInputRef.current(input);
       
       // Reset waiting state after input
       setWaitingForInput(false);
+    } else {
+      console.warn('[App] No writeInputRef available - input rejected');
     }
   };
 

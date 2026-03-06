@@ -97,7 +97,7 @@ export async function executeCode(
 
     if (!isSetup) {
       onError(`Failed to setup ${languageId}`);
-      return { process: null, exitPromise: Promise.resolve(1), writeInput: () => {} };
+      return { process: null, exitPromise: Promise.resolve(1), writeInput: () => {}, hasStdin: false };
     }
 
     // Write file
@@ -116,6 +116,9 @@ export async function executeCode(
     // Keep stdin open for interactive input
     if (process && process.stdin) {
       stdinWriter = process.stdin.getWriter();
+      console.log('[Runtime] stdin writer obtained successfully');
+    } else {
+      console.warn('[Runtime] No stdin available on process');
     }
 
     // Set timeout to kill process if it takes too long
@@ -140,16 +143,21 @@ export async function executeCode(
     const writeInput = async (input) => {
       if (stdinWriter) {
         try {
+          console.log('[Runtime] Writing to stdin:', { input, hasWriter: true });
           const encoder = new TextEncoder();
           await stdinWriter.write(encoder.encode(input + '\n'));
+          console.log('[Runtime] stdin write successful');
         } catch (e) {
           console.warn('Failed to write to stdin:', e);
         }
+      } else {
+        console.warn('[Runtime] No stdinWriter available');
       }
     };
 
     // Stream stdout in real-time - create promise to track completion
     let outputStreamComplete = Promise.resolve();
+    let hasSeenOutput = false;
     
     if (process && process.output) {
       const reader = process.output.getReader();
@@ -166,6 +174,7 @@ export async function executeCode(
               try {
                 const finalText = decoder.decode(new Uint8Array(), { stream: false });
                 if (finalText) {
+                  hasSeenOutput = true;
                   onOutput(finalText);
                 }
               } catch (e) {
@@ -179,6 +188,7 @@ export async function executeCode(
             
             if (value) {
               try {
+                hasSeenOutput = true;
                 let text = '';
                 
                 // Handle different value types
@@ -255,6 +265,7 @@ export async function executeCode(
       process,
       exitPromise,
       writeInput,
+      hasStdin: !!stdinWriter,
       kill: () => {
         if (process) {
           process.kill();
@@ -271,6 +282,7 @@ export async function executeCode(
       process: null, 
       exitPromise: Promise.resolve(1), 
       writeInput: () => {},
+      hasStdin: false,
       kill: () => {}
     };
   }
