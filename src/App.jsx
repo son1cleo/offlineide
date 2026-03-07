@@ -4,8 +4,9 @@ import Layout from './components/Layout';
 import Editor from './components/Editor';
 import Terminal from './components/Terminal';
 import AIChat from './components/AIChat';
+import WorkspaceSwitcher from './components/WorkspaceSwitcher';
 import { useWebContainer } from './hooks/useWebContainer';
-import { useFileSystem } from './hooks/useFileSystem';
+import { useFileSystemWithWorkspace } from './hooks/useFileSystemWithWorkspace';
 import { useAI } from './hooks/useAI';
 import { getLanguageFromExtension, isExecutableLanguage } from './utils/languages';
 import { executeCode } from './utils/runtime';
@@ -16,7 +17,7 @@ import './App.css';
  * Root component for SouthStack IDE
  */
 function App() {
-  // File system management
+  // File system management with workspace support
   const {
     files,
     currentFile,
@@ -30,7 +31,8 @@ function App() {
     getFileNames,
     lastSavedAt,
     isSaving,
-  } = useFileSystem();
+    workspace,
+  } = useFileSystemWithWorkspace();
 
   const currentFileData = getCurrentFile();
 
@@ -338,6 +340,14 @@ function App() {
               ? 'ready'
               : 'initializing'
       }
+      workspaceProps={{
+        workspaces: workspace.getWorkspaceList(),
+        currentWorkspaceId: workspace.currentWorkspaceId,
+        onSwitchWorkspace: workspace.switchWorkspace,
+        onCreateWorkspace: workspace.createWorkspace,
+        onDeleteWorkspace: workspace.deleteWorkspace,
+        onRenameWorkspace: workspace.renameWorkspace,
+      }}
       mobileFilePanel={
         <div className="mobile-file-explorer">
           {getFileNames().map((fileName) => (
