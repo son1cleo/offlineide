@@ -9,16 +9,24 @@ import './Terminal.css';
  * @param {boolean} props.isRunning - Whether code is currently executing
  * @param {Function} props.onInput - Callback when user submits input
  * @param {boolean} props.waitingForInput - Whether process is waiting for input
+ * @param {boolean} props.shellEnabled - Whether shell command input is enabled
+ * @param {boolean} props.shellBusy - Whether shell command is currently running
+ * @param {boolean} props.shellReady - Whether shell backend is ready
  */
-function Terminal({ output = [], isRunning = false, onInput, waitingForInput = false }) {
+function Terminal({
+  output = [],
+  isRunning = false,
+  onInput,
+  waitingForInput = false,
+  shellEnabled = false,
+  shellBusy = false,
+  shellReady = false,
+}) {
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
 
-  // Debug logging for terminal input issues
-  useEffect(() => {
-    console.log('[Terminal] State:', { isRunning, waitingForInput, hasCallback: !!onInput });
-  }, [isRunning, waitingForInput, onInput]);
+  const inputEnabled = isRunning || shellEnabled;
 
   // Auto-scroll to bottom when new output arrives
   useEffect(() => {
@@ -29,33 +37,18 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
 
   // Auto-focus input when running / waiting for input
   useEffect(() => {
-    if ((isRunning || waitingForInput) && inputRef.current) {
-      console.log('[Terminal] Attempting focus on input element');
+    if ((isRunning || waitingForInput || shellEnabled) && inputRef.current) {
       setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-          const focused = document.activeElement === inputRef.current;
-          console.log('[Terminal] Focus result:', { focused, disabled: inputRef.current.disabled });
-        }
+        inputRef.current?.focus();
       }, 0);
     }
-  }, [isRunning, waitingForInput]);
+  }, [isRunning, waitingForInput, shellEnabled]);
 
   const handleInputSubmit = (e) => {
     e.preventDefault();
-    console.log('[Terminal] Form submit attempt:', { 
-      inputValue, 
-      isRunning, 
-      hasCallback: !!onInput,
-      willSubmit: !!(onInput && isRunning)
-    });
-    
-    if (onInput && isRunning) {
-      console.log('[Terminal] Sending input:', inputValue);
+    if (onInput && inputEnabled) {
       onInput(inputValue);
       setInputValue('');
-    } else {
-      console.warn('[Terminal] Cannot submit - condition failed', { onInput: !!onInput, isRunning });
     }
   };
 
@@ -63,13 +56,9 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
     // Handle Enter key separately to ensure it always submits
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      console.log('[Terminal] Enter key pressed');
-      if (onInput && isRunning) {
-        console.log('[Terminal] Submitting via Enter key:', inputValue);
+      if (onInput && inputEnabled) {
         onInput(inputValue);
         setInputValue('');
-      } else {
-        console.warn('[Terminal] Cannot submit on Enter - condition failed', { onInput: !!onInput, isRunning });
       }
       return;
     }
@@ -77,8 +66,7 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
     // Prevent default behavior for Ctrl+C to send interrupt signal
     if (e.ctrlKey && e.key === 'c') {
       e.preventDefault();
-      if (onInput) {
-        console.log('[Terminal] Ctrl+C detected');
+      if (onInput && isRunning) {
         onInput('\x03'); // Send ETX (End of Text) signal
       }
     }
@@ -98,6 +86,11 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
             <span className="terminal-status">
               <span className="status-spinner"></span>
               Running...
+            </span>
+          )}
+          {!isRunning && shellEnabled && (
+            <span className="terminal-status">
+              {shellBusy ? 'Running command...' : (shellReady ? 'Shell ready' : 'Shell not ready')}
             </span>
           )}
           {waitingForInput && (
@@ -132,25 +125,25 @@ function Terminal({ output = [], isRunning = false, onInput, waitingForInput = f
           </div>
         )}
 
-        {/* Interactive input prompt (always available while running) */}
-        {isRunning && (
+        {/* Interactive input prompt */}
+        {inputEnabled && (
           <form className="terminal-input-form" onSubmit={handleInputSubmit}>
-            <span className="input-prompt">›</span>
+            <span className="input-prompt">{isRunning ? '›' : '$'}</span>
             <input
               ref={inputRef}
               type="text"
               className="terminal-input"
               value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                console.log('[Terminal] Input changed:', e.target.value);
-              }}
+              onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={waitingForInput ? "Type input and press Enter..." : "Type and press Enter..."}
+              placeholder={isRunning
+                ? (waitingForInput ? 'Type input and press Enter...' : 'Type and press Enter...')
+                : 'Type a command (git status, git init, help, clear)'}
               autoComplete="off"
               autoCorrect="off"
               spellCheck="false"
               autoCapitalize="off"
+              disabled={shellBusy && !isRunning}
               data-testid="terminal-input"
             />
           </form>

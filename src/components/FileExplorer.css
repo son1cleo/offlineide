@@ -46,6 +46,59 @@
   box-shadow: 0 2px 8px var(--glow);
 }
 
+.explorer-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.workspace-tools,
+.workspace-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.workspace-select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg-1);
+  color: var(--text);
+  font-size: 0.75rem;
+  pointer-events: auto;
+}
+
+.tool-btn {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg-1);
+  color: var(--text);
+  font-size: 0.72rem;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.tool-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tool-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* File List */
 .file-list {
   flex: 1;
@@ -252,6 +305,15 @@
     width: 24px;
     height: 24px;
     font-size: 0.85rem;
+  }
+
+  .explorer-tools {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .workspace-select,
+  .tool-btn {
+    font-size: 0.68rem;
   }
   
   .file-item {

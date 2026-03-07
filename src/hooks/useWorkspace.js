@@ -209,7 +209,8 @@ export function useWorkspace() {
     }));
 
     saveWorkspaceToDB(newWorkspace);
-    switchWorkspace(id);
+    setCurrentWorkspaceId(id);
+    localStorage.setItem('southstack_current_workspace', id);
 
     console.log(`📁 Created workspace: ${name}`);
     return newWorkspace;
@@ -254,14 +255,13 @@ export function useWorkspace() {
 
   // Switch to different workspace
   const switchWorkspace = useCallback((workspaceId) => {
-    if (!workspaces[workspaceId]) {
-      console.warn(`⚠️ Workspace "${workspaceId}" not found`);
-      return false;
-    }
-
     setCurrentWorkspaceId(workspaceId);
     localStorage.setItem('southstack_current_workspace', workspaceId);
-    console.log(`🔄 Switched to workspace: ${workspaces[workspaceId].name}`);
+    if (workspaces[workspaceId]) {
+      console.log(`🔄 Switched to workspace: ${workspaces[workspaceId].name}`);
+    } else {
+      console.log(`🔄 Switched to workspace: ${workspaceId}`);
+    }
     return true;
   }, [workspaces]);
 

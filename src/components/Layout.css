@@ -376,28 +376,6 @@
     text-overflow: ellipsis;
   }
   
-  .run-button,
-  .stop-button {
-    padding: 0.45rem 0.8rem;
-    font-size: 0.8rem;
-  }
-  
-  .sidebar {
-    width: 240px;
-  }
-  
-  .status-error-box {
-    max-width: 300px;
-    font-size: 0.7rem;
-  }
-}
-
-/* Mobile (768px and below) */
-@media (max-width: 768px) {
-  .layout {
-    height: 100dvh;
-  }
-  
   .layout-header {
     padding: 0.6rem 0.8rem;
     min-height: 52px;
@@ -407,10 +385,32 @@
   }
   
   .header-left {
-    gap: 0;
-    width: auto;
+    gap: 0.5rem;
+    width: 100%;
     order: 1;
-    justify-content: center;
+    justify-content: flex-start;
+  }
+
+  .header-git-actions {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+  }
+
+  .header-git-actions .git-actions {
+    gap: 0.2rem;
+  }
+
+  .header-git-actions .git-button {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.62rem;
+  }
+
+  .header-workspace-switcher {
+    flex: 1;
+    min-width: 0;
   }
   
   .app-logo {

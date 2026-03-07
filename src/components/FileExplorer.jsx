@@ -11,6 +11,7 @@ import './FileExplorer.css';
  * @param {Function} props.onFileCreate - Callback to create new file
  * @param {Function} props.onFileDelete - Callback to delete file
  * @param {Function} props.onFileRename - Callback to rename file
+ * @param {Object} props.workspaceProps - Workspace operations and state
  */
 function FileExplorer({ 
   fileNames = [], 
@@ -19,6 +20,7 @@ function FileExplorer({
   onFileCreate,
   onFileDelete,
   onFileRename,
+  workspaceProps = {},
 }) {
   const [isCreating, setIsCreating] = useState(false);
   const [newFileName, setNewFileName] = useState('');
@@ -67,6 +69,18 @@ function FileExplorer({
     setRenameValue(fileName);
   };
 
+  const workspaceList = workspaceProps.workspaces || [];
+
+  const handleCreateWorkspace = () => {
+    if (!workspaceProps.onCreateWorkspace) {
+      return;
+    }
+
+    const nextNumber = workspaceList.length + 1;
+    const generatedName = `Workspace ${nextNumber}`;
+    workspaceProps.onCreateWorkspace(generatedName);
+  };
+
   return (
     <div className="file-explorer">
       <div className="explorer-header">
@@ -79,6 +93,33 @@ function FileExplorer({
         >
           ➕
         </button>
+      </div>
+
+      <div className="explorer-tools">
+        <div className="workspace-tools">
+          <select
+            className="workspace-select"
+            value={workspaceProps.currentWorkspaceId || ''}
+            onChange={(e) => workspaceProps.onSwitchWorkspace?.(e.target.value)}
+          >
+            {workspaceList.map((ws) => (
+              <option key={ws.id} value={ws.id}>{ws.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="tool-btn"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={handleCreateWorkspace}
+            title="New workspace"
+            aria-label="Create workspace"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       <div className="file-list">
