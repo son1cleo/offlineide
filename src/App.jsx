@@ -5,6 +5,7 @@ import Editor from './components/Editor';
 import Terminal from './components/Terminal';
 import AIChat from './components/AIChat';
 import FileExplorer from './components/FileExplorer';
+import LandingPage from './components/LandingPage';
 import { useWebContainer } from './hooks/useWebContainer';
 import { useFileSystemWithWorkspace } from './hooks/useFileSystemWithWorkspace';
 import { useAI } from './hooks/useAI';
@@ -76,12 +77,27 @@ function App() {
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [useFileContext, setUseFileContext] = useState(true);
   const [isShellBusy, setIsShellBusy] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
 
   useEffect(() => {
     if (rememberAI && !aiReady && !aiLoading) {
       initializeAI();
     }
   }, [rememberAI, aiReady, aiLoading, initializeAI]);
+
+  useEffect(() => {
+    if (!showLanding) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowLanding(false);
+    }, 2400);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [showLanding]);
 
   const handleCodeChange = (newCode) => {
     updateFile(currentFile, newCode);
@@ -1364,6 +1380,10 @@ function App() {
     onDeleteWorkspace: workspace?.deleteWorkspace || (() => false),
     onRenameWorkspace: workspace?.renameWorkspace || (() => false),
   };
+
+  if (showLanding) {
+    return <LandingPage />;
+  }
 
   return (
     <Layout
